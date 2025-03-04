@@ -1,15 +1,46 @@
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import debounce from 'lodash.debounce';
 import './App.scss';
 import { peopleFromServer } from './data/people';
+import { Person } from './types/Person';
 
 export const App: React.FC = () => {
-  const { name, born, died } = peopleFromServer[0];
+  const [isOpen, setIsOpen] = useState(false);
+  const [value, setValue] = useState('');
+  const [selectedPerson, setSelectedPerson] = useState('');
+  const [apliedValue, setApliedValue] = useState('');
+  const delay = 300;
+
+  const findPerson = peopleFromServer.find(p => p.name === selectedPerson);
+
+  const aplyValue = useCallback(debounce(setApliedValue, delay), []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+    aplyValue(e.target.value);
+    setSelectedPerson('');
+  };
+
+  const selectPerson = (person: Person) => {
+    setSelectedPerson(person.name);
+    setIsOpen(false);
+  };
+
+  const filteredPeople = useMemo(() => {
+    const normalizeValue = apliedValue.trim().toLowerCase();
+
+    return peopleFromServer.filter(currPers =>
+      currPers.name.toLowerCase().trim().includes(normalizeValue),
+    );
+  }, [apliedValue]);
 
   return (
     <div className="container">
       <main className="section is-flex is-flex-direction-column">
         <h1 className="title" data-cy="title">
-          {`${name} (${born} - ${died})`}
+          {findPerson
+            ? `${findPerson.name} (${findPerson.born} - ${findPerson.died ?? 'still alive'})`
+            : 'No selected person'}
         </h1>
 
         <div className="dropdown is-active">
@@ -18,56 +49,50 @@ export const App: React.FC = () => {
               type="text"
               placeholder="Enter a part of the name"
               className="input"
+              onChange={handleChange}
+              value={selectedPerson ? selectedPerson : value}
+              onFocus={() => setIsOpen(true)}
               data-cy="search-input"
             />
           </div>
 
           <div className="dropdown-menu" role="menu" data-cy="suggestions-list">
-            <div className="dropdown-content">
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-link">Pieter Haverbeke</p>
+            {isOpen && (
+              <div className="dropdown-content">
+                {filteredPeople.map(person => (
+                  <div
+                    className="dropdown-item"
+                    data-cy="suggestion-item"
+                    key={person.slug}
+                  >
+                    <p
+                      className="has-text-link"
+                      onClick={() => selectPerson(person)}
+                    >
+                      {person.name}
+                    </p>
+                  </div>
+                ))}
               </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-link">Pieter Bernard Haverbeke</p>
-              </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-link">Pieter Antone Haverbeke</p>
-              </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-danger">Elisabeth Haverbeke</p>
-              </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-link">Pieter de Decker</p>
-              </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-danger">Petronella de Decker</p>
-              </div>
-
-              <div className="dropdown-item" data-cy="suggestion-item">
-                <p className="has-text-danger">Elisabeth Hercke</p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
-        <div
-          className="
+        {filteredPeople.length === 0 && (
+          <div
+            className="
             notification
             is-danger
             is-light
             mt-3
             is-align-self-flex-start
           "
-          role="alert"
-          data-cy="no-suggestions-message"
-        >
-          <p className="has-text-danger">No matching suggestions</p>
-        </div>
+            role="alert"
+            data-cy="no-suggestions-message"
+          >
+            <p className="has-text-danger">No matching suggestions</p>
+          </div>
+        )}
       </main>
     </div>
   );
