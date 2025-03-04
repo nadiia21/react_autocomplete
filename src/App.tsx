@@ -8,16 +8,17 @@ export const App: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [value, setValue] = useState('');
   const [selectedPerson, setSelectedPerson] = useState('');
-  const [apliedValue, setApliedValue] = useState('');
+  const [appliedValue, setAppliedValue] = useState('');
   const delay = 300;
 
-  const findPerson = peopleFromServer.find(p => p.name === selectedPerson);
+  const findPerson =
+    peopleFromServer.find(p => p.name === selectedPerson) || null;
 
-  const aplyValue = useCallback(debounce(setApliedValue, delay), []);
+  const applyValue = useCallback(debounce(setAppliedValue, delay), []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
-    aplyValue(e.target.value);
+    applyValue(e.target.value);
     setSelectedPerson('');
   };
 
@@ -27,12 +28,12 @@ export const App: React.FC = () => {
   };
 
   const filteredPeople = useMemo(() => {
-    const normalizeValue = apliedValue.trim().toLowerCase();
+    const normalizeValue = appliedValue.trim().toLowerCase();
 
     return peopleFromServer.filter(currPers =>
       currPers.name.toLowerCase().trim().includes(normalizeValue),
     );
-  }, [apliedValue]);
+  }, [appliedValue]);
 
   return (
     <div className="container">
