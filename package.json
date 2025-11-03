@@ -16,11 +16,7 @@
   "devDependencies": {
     "@cypress/react18": "^2.0.1",
     "@faker-js/faker": "^8.4.1",
-<<<<<<< HEAD
-    "@mate-academy/scripts": "^2.1.0",
-=======
     "@mate-academy/scripts": "^2.1.2",
->>>>>>> b6d8a60 (solution 2.0)
     "@mate-academy/students-ts-config": "*",
     "@mate-academy/stylelint-config": "*",
     "@types/lodash.debounce": "^4.0.9",
